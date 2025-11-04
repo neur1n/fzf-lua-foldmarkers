@@ -1,26 +1,7 @@
 local M = {}
 
-local function collect()
-  local marker = vim.api.nvim_get_option_value("foldmarker", {scope = "local"}) or "{{{,}}}"
-  local open, close = marker:match("^([^,]+),(.+)$")
-  open =  open or "{{{"
-  close = close or "}}}"
-
-  local popen = vim.pesc(open)
-  local pclose = vim.pesc(close)
-
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  local entries = {}
-
-  for i, line in ipairs(lines) do
-    if line:find(popen) or line:find(pclose) then
-      local display = line:gsub("^%W+", "")
-      table.insert(entries, string.format("%d: %s", i, display))
-    end
-  end
-
-  return entries
-end
+local collect
+local config
 
 function M.foldmarkers()
   local entries = collect()
@@ -47,6 +28,10 @@ function M.foldmarkers()
         end
 
         vim.api.nvim_win_set_cursor(0, {lnum, 0})
+
+        if type(config.on_jump) == "function" then
+          pcall(config.on_jump)
+        end
       end,
     },
     preview = function(selected)
@@ -80,5 +65,36 @@ function M.foldmarkers()
     end,
   })
 end
+
+function M.setup(opt)
+  opt = opt or {}
+  config = vim.tbl_deep_extend("force", config, opt)
+end
+
+collect = function()
+  local marker = vim.api.nvim_get_option_value("foldmarker", {scope = "local"}) or "{{{,}}}"
+  local open, close = marker:match("^([^,]+),(.+)$")
+  open =  open or "{{{"
+  close = close or "}}}"
+
+  local popen = vim.pesc(open)
+  local pclose = vim.pesc(close)
+
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local entries = {}
+
+  for i, line in ipairs(lines) do
+    if line:find(popen) or line:find(pclose) then
+      local display = line:gsub("^%W+", "")
+      table.insert(entries, string.format("%d: %s", i, display))
+    end
+  end
+
+  return entries
+end
+
+config = {
+  on_jump = nil,
+}
 
 return M

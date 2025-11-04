@@ -18,7 +18,15 @@ Install this using your favorite package manager. For example using <a href="htt
 },
 ```
 
-Currently, this plugin does not need any additional setup.
+## Configuration
+```lua
+require("fzf-lua-foldmarkers").setup({
+    -- Optional. Will be called after jumping to a fold marker.
+    on_jump = function()
+      ...
+    end,
+})
+```
 
 ## Usage
 Example keybinding to invoke the fold markers picker:
